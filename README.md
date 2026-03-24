@@ -10,7 +10,7 @@
 
 A powerful Streamlit application that generates complete, production-ready websites (HTML/CSS/JS) from natural language descriptions using OpenRouter API.
 
-[Features](#features) • [Demo](#demo) • [Installation](#installation) • [Usage](#usage) • [Configuration](#configuration)
+[Features](#features) • [Demo](#demo) • [Installation](#installation) • [Usage](#usage) • [Project Structure](#project-structure)
 
 </div>
 
@@ -28,11 +28,14 @@ A powerful Streamlit application that generates complete, production-ready websi
 
 ### Technical Features
 
+- **Modular Architecture**: Clean separation of concerns with well-organized modules
 - **Single-File Output**: All CSS and JavaScript are embedded in a single HTML file
 - **Responsive Design**: Generated websites are mobile-friendly by default
 - **Modern UI/UX**: Clean, gradient-based interface with smooth animations
 - **Secure API Key Handling**: No hardcoded keys - use secrets or input field
-- **Error Handling**: Comprehensive error messages for API issues
+- **Comprehensive Error Handling**: Clear error messages for API issues
+- **Type Hints**: Full type annotations for better code quality
+- **Test Coverage**: Unit tests for core functionality
 
 ---
 
@@ -65,33 +68,42 @@ Here are some prompts you can try:
 - Python 3.8 or higher
 - OpenRouter API Key (free tier available)
 
-### Step 1: Clone or Download
+### Quick Start
 
 ```bash
-# If you have the files, navigate to the project directory
+# Clone the repository
+git clone https://github.com/insydr/ai-website-generator.git
 cd ai-website-generator
-```
 
-### Step 2: Create Virtual Environment (Recommended)
-
-```bash
 # Create virtual environment
 python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-# Activate virtual environment
-# On Windows:
-venv\Scripts\activate
-# On macOS/Linux:
-source venv/bin/activate
+# Install dependencies
+pip install -r requirements.txt
+
+# Run the application
+streamlit run src/ai_website_generator/app.py
 ```
 
-### Step 3: Install Dependencies
+### Development Installation
 
 ```bash
-pip install -r requirements.txt
+# Install with development dependencies
+pip install -r requirements.txt -r requirements-dev.txt
+
+# Run tests
+pytest
+
+# Format code
+black src tests
+isort src tests
+
+# Type check
+mypy src
 ```
 
-### Step 4: Configure API Key (Optional)
+### Configuration
 
 Create a `.streamlit/secrets.toml` file to store your API key securely:
 
@@ -100,19 +112,24 @@ Create a `.streamlit/secrets.toml` file to store your API key securely:
 openrouter_api_key = "sk-or-your-api-key-here"
 ```
 
-### Step 5: Run the Application
-
-```bash
-streamlit run app.py
-```
-
-The application will open in your browser at `http://localhost:8501`
-
 ---
 
 ## Usage
 
-### Basic Usage
+### Running the Application
+
+```bash
+# Method 1: Direct execution
+streamlit run src/ai_website_generator/app.py
+
+# Method 2: As a Python module
+python -m ai_website_generator
+
+# Method 3: After pip install
+ai-website-generator
+```
+
+### Basic Workflow
 
 1. **Enter API Key**: Input your OpenRouter API key in the sidebar (or configure in secrets)
 2. **Select Model**: Choose an AI model from the dropdown
@@ -127,8 +144,8 @@ The application will open in your browser at `http://localhost:8501`
 
 ```
 ❌ "Make a landing page"
-✅ "Create a landing page for a SaaS product with a dark theme, 
-    purple accents, hero section with CTA, features grid, 
+✅ "Create a landing page for a SaaS product with a dark theme,
+    purple accents, hero section with CTA, features grid,
     testimonials carousel, and pricing table"
 ```
 
@@ -136,29 +153,63 @@ The application will open in your browser at `http://localhost:8501`
 
 ```
 ❌ "Add a menu"
-✅ "Add a sticky navigation menu with smooth scroll, 
+✅ "Add a sticky navigation menu with smooth scroll,
     mobile hamburger menu, and hover effects"
-```
-
-#### Mention Color Schemes
-
-```
-❌ "Make it look nice"
-✅ "Use a modern color palette with #667eea as primary, 
-    dark background (#1a1a2e), and white text"
 ```
 
 ---
 
-## Configuration
+## Project Structure
 
-### Environment Variables
+```
+ai-website-generator/
+├── src/
+│   └── ai_website_generator/
+│       ├── __init__.py          # Package initialization
+│       ├── __main__.py          # Module entry point
+│       ├── app.py               # Main application class
+│       ├── config.py            # Configuration management
+│       ├── constants.py         # Application constants
+│       ├── api/
+│       │   ├── __init__.py
+│       │   └── openrouter.py    # OpenRouter API client
+│       ├── ui/
+│       │   ├── __init__.py
+│       │   ├── components.py    # UI components
+│       │   └── styles.py        # CSS styling
+│       └── utils/
+│           ├── __init__.py
+│           ├── code_extractor.py # Code extraction utilities
+│           └── session.py        # Session state management
+├── tests/
+│   ├── __init__.py
+│   ├── test_code_extractor.py
+│   └── test_session.py
+├── .streamlit/
+│   └── secrets.toml.example     # Example secrets config
+├── pyproject.toml               # Project metadata & build config
+├── requirements.txt             # Runtime dependencies
+├── requirements-dev.txt         # Development dependencies
+├── README.md                    # This file
+└── .gitignore                   # Git ignore rules
+```
 
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `openrouter_api_key` | Your OpenRouter API key | Yes (via secrets or input) |
+### Module Overview
 
-### Available Models
+| Module | Description |
+|--------|-------------|
+| `app.py` | Main application class and entry point |
+| `config.py` | Configuration management with secrets support |
+| `constants.py` | All constant values (models, prompts, etc.) |
+| `api/openrouter.py` | OpenRouter API client with error handling |
+| `ui/components.py` | Reusable Streamlit UI components |
+| `ui/styles.py` | Custom CSS styling |
+| `utils/code_extractor.py` | HTML code extraction from AI responses |
+| `utils/session.py` | Session state management |
+
+---
+
+## Available Models
 
 The app includes these free models (sorted by latency):
 
@@ -177,114 +228,55 @@ The app includes these free models (sorted by latency):
 
 ## Getting OpenRouter API Key
 
-### Step-by-Step Guide
-
 1. **Visit OpenRouter**: Go to [openrouter.ai](https://openrouter.ai)
-
-2. **Sign Up**: Create a free account using:
-   - Google
-   - GitHub
-   - Email
-
+2. **Sign Up**: Create a free account (Google, GitHub, or Email)
 3. **Navigate to Keys**: Go to [openrouter.ai/keys](https://openrouter.ai/keys)
-
 4. **Create Key**: Click "Create Key" and give it a name
-
 5. **Copy Key**: Copy the key (starts with `sk-or-`)
+6. **Add to App**: Paste in sidebar input or add to secrets
 
-6. **Add to App**: 
-   - Paste in the sidebar input, OR
-   - Add to `.streamlit/secrets.toml`
-
-### Free Tier Limits
-
-- Many models are completely free
-- No credit card required for free models
-- Rate limits apply (usually 20 requests/minute)
+**Free Tier**: Many models are completely free, no credit card required!
 
 ---
 
-## Project Structure
+## Development
 
-```
-ai-website-generator/
-├── app.py                    # Main Streamlit application
-├── requirements.txt          # Python dependencies
-├── README.md                 # This file
-└── .streamlit/
-    └── secrets.toml          # API key configuration (create this)
+### Running Tests
+
+```bash
+# Run all tests
+pytest
+
+# Run with coverage
+pytest --cov=ai_website_generator
+
+# Run specific test file
+pytest tests/test_code_extractor.py -v
 ```
 
----
+### Code Quality
 
-## API Reference
+```bash
+# Format code
+black src tests
+isort src tests
 
-### OpenRouter Integration
+# Lint
+flake8 src tests
 
-The app uses OpenRouter's chat completions API:
-
-```python
-# Endpoint
-POST https://openrouter.ai/api/v1/chat/completions
-
-# Headers
-Authorization: Bearer {API_KEY}
-HTTP-Referer: https://your-app-url.com
-X-Title: AI Website Generator
-Content-Type: application/json
-
-# Body
-{
-    "model": "meta-llama/llama-3.2-3b-instruct:free",
-    "messages": [
-        {"role": "system", "content": "..."},
-        {"role": "user", "content": "..."}
-    ],
-    "temperature": 0.7,
-    "max_tokens": 4000
-}
+# Type check
+mypy src
 ```
 
----
+### Pre-commit Hooks
 
-## Troubleshooting
+```bash
+# Install pre-commit hooks
+pre-commit install
 
-### Common Issues
-
-#### "Invalid API Key"
-- Verify your key starts with `sk-or-`
-- Check for extra spaces or newlines
-- Ensure key is active at openrouter.ai/keys
-
-#### "Rate Limit Exceeded"
-- Wait a few minutes before trying again
-- Try a different model
-- Free tier has 20 requests/minute limit
-
-#### "Model Overloaded"
-- Switch to a different model
-- Wait a few minutes
-- Peak hours may have more traffic
-
-#### "Could not extract HTML"
-- Try regenerating with more specific prompt
-- Check if model returned an error message
-- Try a larger model (Llama 3.1 8B)
-
-#### Preview Not Loading
-- Check browser console for errors
-- The HTML might have embedded scripts blocked by browser
-- Try downloading and opening locally
-
----
-
-## Security Best Practices
-
-1. **Never commit API keys** to version control
-2. **Use secrets.toml** for local development
-3. **Use environment variables** for production deployment
-4. **Regenerate keys** if accidentally exposed
-5. **Monitor usage** at openrouter.ai/activity
+# Run on all files
+pre-commit run --all-files
+```
 
 ---
 
@@ -295,20 +287,11 @@ Content-Type: application/json
 1. Push code to GitHub
 2. Go to [share.streamlit.io](https://share.streamlit.io)
 3. Connect your repository
-3. Add `openrouter_api_key` to secrets
-4. Deploy!
+4. Set main file path: `src/ai_website_generator/app.py`
+5. Add `openrouter_api_key` to secrets
+6. Deploy!
 
-### Other Platforms
-
-The app can be deployed to any platform supporting Python:
-
-- **Heroku**: Add `Procfile` with `web: streamlit run app.py`
-- **Railway**: Auto-detects Streamlit
-- **Render**: Use Streamlit runtime
-- **Docker**: See Dockerfile example below
-
-<details>
-<summary>Docker Deployment</summary>
+### Docker
 
 ```dockerfile
 FROM python:3.11-slim
@@ -318,21 +301,27 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY app.py .
+COPY src/ ./src/
 
 EXPOSE 8501
 
 HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health
 
-ENTRYPOINT ["streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+ENTRYPOINT ["streamlit", "run", "src/ai_website_generator/app.py", \
+    "--server.port=8501", "--server.address=0.0.0.0"]
 ```
 
-```bash
-docker build -t ai-website-generator .
-docker run -p 8501:8501 ai-website-generator
-```
+---
 
-</details>
+## Troubleshooting
+
+| Issue | Solution |
+|-------|----------|
+| Invalid API Key | Verify key starts with `sk-or-`, check for extra spaces |
+| Rate Limit Exceeded | Wait a few minutes or try a different model |
+| Model Overloaded | Switch models or wait for traffic to decrease |
+| Could not extract HTML | Try regenerating with more specific prompt |
+| Preview Not Loading | Check browser console, download and open locally |
 
 ---
 
@@ -342,9 +331,11 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+3. Make your changes
+4. Run tests and linting (`pytest && black src tests`)
+5. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+6. Push to the branch (`git push origin feature/AmazingFeature`)
+7. Open a Pull Request
 
 ---
 
@@ -365,7 +356,7 @@ This project is open source and available under the MIT License.
 
 <div align="center">
 
-**Made with ❤️ by AI**
+**Made with ❤️ by Sydr Dev**
 
 ⭐ Star this repo if you find it useful! ⭐
 

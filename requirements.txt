@@ -1,5 +1,6 @@
 # AI Website Generator - Dependencies
 # ====================================
+# Install with: pip install -r requirements.txt
 
 # Core Framework
 streamlit>=1.28.0
@@ -7,7 +8,11 @@ streamlit>=1.28.0
 # HTTP Requests
 requests>=2.31.0
 
-# Optional but recommended for better performance
+# Optional: Performance
 urllib3>=2.0.0
+
+# -----------------------------------------------------------------------------
+# Development Dependencies (install with: pip install -r requirements.txt -r requirements-dev.txt)
+# -----------------------------------------------------------------------------
 
 # Note: Python version requirement: >=3.8

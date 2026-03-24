@@ -19,6 +19,7 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+MANIFEST
 
 # Virtual Environment
 venv/
@@ -35,10 +36,34 @@ env/
 *.swp
 *.swo
 *~
+.project
+.pydevproject
+.settings/
+
+# Testing
+.tox/
+.nox/
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# Type checking
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.pytype/
 
 # OS
 .DS_Store
 Thumbs.db
+*.bak
+*.tmp
 
 # Logs
 *.log
@@ -47,3 +72,14 @@ logs/
 # Local development
 .env
 .env.local
+.env.*.local
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+
+# Distribution
+*.manifest
+*.spec
+
+# PEP 582
+__pypackages__/
