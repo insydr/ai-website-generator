@@ -197,6 +197,7 @@ def render_model_selector(
             value=current_model,
             placeholder="e.g., gpt-4, claude-3-opus, llama-3",
             help="Enter the model identifier for your API",
+            key=f"custom_model_input_{provider_type}",
         )
         return custom_model, True
 
@@ -214,12 +215,17 @@ def render_model_selector(
     if allow_custom:
         options["__custom__"] = "✏️ Custom model..."
 
-    # Find current selection
-    if current_model in options:
+    # Determine if current model is custom or predefined
+    is_current_custom = current_model not in options or current_model == "__custom__"
+    
+    if is_current_custom and allow_custom and current_model and current_model != "__custom__":
+        # Current model is a custom model, show custom option selected
+        index = len(options) - 1  # Last option is custom
+    elif current_model in options:
         index = list(options.keys()).index(current_model)
     else:
-        # If current model not in list, default to custom
-        index = len(options) - 1 if allow_custom else 0
+        # Default to first option
+        index = 0
 
     selected = st.selectbox(
         "📋 Select Model",
@@ -227,15 +233,21 @@ def render_model_selector(
         format_func=lambda x: options.get(x, x),
         index=index,
         help="Choose a model or enter a custom one",
+        key=f"model_selector_{provider_type}",
     )
 
     # Handle custom model input
     if selected == "__custom__":
+        # Show text input for custom model
+        # Use current_model as default if it's a custom model (not in options)
+        default_value = current_model if is_current_custom and current_model != "__custom__" else ""
+        
         custom_model = st.text_input(
             "Enter Model ID",
-            value=current_model if current_model not in options else "",
+            value=default_value,
             placeholder="e.g., gpt-4-turbo, claude-3-opus-20240229",
             help="Enter the exact model identifier",
+            key=f"custom_model_text_{provider_type}",
         )
         return custom_model, True
 

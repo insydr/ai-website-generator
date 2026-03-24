@@ -9,7 +9,7 @@ This module orchestrates all components and handles the main application flow.
 import streamlit as st
 from typing import Optional, Dict, Any
 
-from ai_website_generator.constants import APP_TITLE, APP_ICON, DEFAULT_MODEL
+from ai_website_generator.constants import APP_TITLE, APP_ICON
 from ai_website_generator.config import get_config
 from ai_website_generator.providers.base import ProviderType
 from ai_website_generator.providers.registry import get_provider
@@ -137,11 +137,6 @@ class AIWebsiteGenerator:
         provider_type = self.session.get_provider_type()
         model = self.session.get_selected_model()
         base_url = self.session.get_custom_base_url()
-
-        # For custom model input
-        custom_model = self.session.get_custom_model()
-        if custom_model and (not model or model == DEFAULT_MODEL):
-            model = custom_model
 
         try:
             # Create provider configuration
@@ -276,7 +271,12 @@ class AIWebsiteGenerator:
 
         # Handle provider/model changes from sidebar
         if sidebar_values.get("is_custom_model"):
+            # For custom model, update both custom_model and selected_model
             self.session.set_custom_model(sidebar_values["model"])
+            self.session.set_selected_model(sidebar_values["model"])
+        else:
+            # For predefined model, clear custom model and update selected
+            self.session.set_custom_model("")
 
         # Handle clear chat
         if sidebar_values.get("clear_clicked"):
