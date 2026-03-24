@@ -11,87 +11,15 @@ Contains all constant values used throughout the application.
 
 APP_TITLE = "AI Website Generator"
 APP_ICON = "🌐"
-APP_VERSION = "1.0.0"
+APP_VERSION = "1.1.0"
 
 # =============================================================================
 # API CONFIGURATION
 # =============================================================================
 
-OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"
 API_TIMEOUT = 120  # seconds
 API_REFERER = "https://ai-website-generator.streamlit.app"
 API_TITLE = "AI Website Generator"
-
-# =============================================================================
-# AVAILABLE MODELS
-# =============================================================================
-
-# Free models from OpenRouter (sorted by latency)
-AVAILABLE_MODELS = [
-    {
-        "id": "meta-llama/llama-3.2-3b-instruct:free",
-        "name": "Llama 3.2 3B (Free)",
-        "context": "128K",
-        "description": "Fast and capable for most tasks"
-    },
-    {
-        "id": "meta-llama/llama-3.2-1b-instruct:free",
-        "name": "Llama 3.2 1B (Free)",
-        "context": "128K",
-        "description": "Ultra-fast, best for simple sites"
-    },
-    {
-        "id": "meta-llama/llama-3.1-8b-instruct:free",
-        "name": "Llama 3.1 8B (Free)",
-        "context": "128K",
-        "description": "Balanced speed and quality"
-    },
-    {
-        "id": "qwen/qwen-2-7b-instruct:free",
-        "name": "Qwen 2 7B (Free)",
-        "context": "32K",
-        "description": "Good for complex designs"
-    },
-    {
-        "id": "google/gemma-2-9b-it:free",
-        "name": "Gemma 2 9B (Free)",
-        "context": "8K",
-        "description": "High quality output"
-    },
-    {
-        "id": "mistralai/mistral-7b-instruct:free",
-        "name": "Mistral 7B (Free)",
-        "context": "32K",
-        "description": "Fast and capable"
-    },
-    {
-        "id": "huggingfaceh4/zephyr-7b-beta:free",
-        "name": "Zephyr 7B (Free)",
-        "context": "4K",
-        "description": "Good conversation model"
-    },
-    {
-        "id": "openchat/openchat-7b:free",
-        "name": "OpenChat 7B (Free)",
-        "context": "4K",
-        "description": "Optimized for chat"
-    },
-    {
-        "id": "deepseek/deepseek-r1:free",
-        "name": "DeepSeek R1 (Free)",
-        "context": "128K",
-        "description": "Complex reasoning"
-    },
-    {
-        "id": "deepseek/deepseek-chat:free",
-        "name": "DeepSeek Chat (Free)",
-        "context": "128K",
-        "description": "Conversational AI"
-    },
-]
-
-# Default model selection
-DEFAULT_MODEL_ID = AVAILABLE_MODELS[0]["id"]
 
 # =============================================================================
 # SYSTEM PROMPT
@@ -184,3 +112,28 @@ MAX_CHAT_PREVIEW_LENGTH = 200
 # Generation settings
 DEFAULT_TEMPERATURE = 0.7
 DEFAULT_MAX_TOKENS = 4000
+
+# =============================================================================
+# PROVIDER DEFAULTS
+# =============================================================================
+
+DEFAULT_PROVIDER = "openrouter"
+DEFAULT_MODEL = "meta-llama/llama-3.2-3b-instruct:free"
+
+# Provider display names
+PROVIDER_DISPLAY_NAMES = {
+    "openrouter": "OpenRouter",
+    "openai": "OpenAI",
+    "anthropic": "Anthropic",
+    "groq": "Groq",
+    "custom": "Custom API",
+}
+
+# API Key hints for each provider
+API_KEY_HINTS = {
+    "openrouter": "sk-or-v1-...",
+    "openai": "sk-...",
+    "anthropic": "sk-ant-...",
+    "groq": "gsk_...",
+    "custom": "Your API key",
+}

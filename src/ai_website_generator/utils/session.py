@@ -9,6 +9,8 @@ from dataclasses import dataclass, field
 from typing import List, Dict, Optional, Any
 from datetime import datetime
 
+from ai_website_generator.constants import DEFAULT_PROVIDER, DEFAULT_MODEL
+
 
 @dataclass
 class ChatMessage:
@@ -35,9 +37,12 @@ class SessionManager:
     KEY_CHAT_HISTORY = "chat_history"
     KEY_GENERATED_CODE = "generated_code"
     KEY_API_KEY = "api_key"
+    KEY_PROVIDER_TYPE = "provider_type"
     KEY_SELECTED_MODEL = "selected_model"
+    KEY_CUSTOM_BASE_URL = "custom_base_url"
     KEY_SHOW_CODE = "show_code"
     KEY_IS_LOADING = "is_loading"
+    KEY_CUSTOM_MODEL_INPUT = "custom_model_input"
 
     def __init__(self):
         """Initialize session manager."""
@@ -57,8 +62,14 @@ class SessionManager:
             if self.KEY_API_KEY not in st.session_state:
                 st.session_state[self.KEY_API_KEY] = ""
 
+            if self.KEY_PROVIDER_TYPE not in st.session_state:
+                st.session_state[self.KEY_PROVIDER_TYPE] = DEFAULT_PROVIDER
+
             if self.KEY_SELECTED_MODEL not in st.session_state:
-                st.session_state[self.KEY_SELECTED_MODEL] = None
+                st.session_state[self.KEY_SELECTED_MODEL] = DEFAULT_MODEL
+
+            if self.KEY_CUSTOM_BASE_URL not in st.session_state:
+                st.session_state[self.KEY_CUSTOM_BASE_URL] = ""
 
             if self.KEY_SHOW_CODE not in st.session_state:
                 st.session_state[self.KEY_SHOW_CODE] = False
@@ -66,15 +77,21 @@ class SessionManager:
             if self.KEY_IS_LOADING not in st.session_state:
                 st.session_state[self.KEY_IS_LOADING] = False
 
+            if self.KEY_CUSTOM_MODEL_INPUT not in st.session_state:
+                st.session_state[self.KEY_CUSTOM_MODEL_INPUT] = ""
+
         except ImportError:
             # Fallback for non-Streamlit usage (e.g., tests)
             self._fallback_state = {
                 self.KEY_CHAT_HISTORY: [],
                 self.KEY_GENERATED_CODE: None,
                 self.KEY_API_KEY: "",
-                self.KEY_SELECTED_MODEL: None,
+                self.KEY_PROVIDER_TYPE: DEFAULT_PROVIDER,
+                self.KEY_SELECTED_MODEL: DEFAULT_MODEL,
+                self.KEY_CUSTOM_BASE_URL: "",
                 self.KEY_SHOW_CODE: False,
                 self.KEY_IS_LOADING: False,
+                self.KEY_CUSTOM_MODEL_INPUT: "",
             }
 
     def _get_state(self, key: str, default: Any = None) -> Any:
@@ -148,15 +165,28 @@ class SessionManager:
         return bool(self._get_state(self.KEY_GENERATED_CODE))
 
     # =========================================================================
-    # API Key Management
+    # Provider Configuration
     # =========================================================================
+
+    def set_provider_type(self, provider_type: str) -> None:
+        """
+        Set the provider type.
+
+        Args:
+            provider_type: Provider type string (openrouter, openai, etc.)
+        """
+        self._set_state(self.KEY_PROVIDER_TYPE, provider_type)
+
+    def get_provider_type(self) -> str:
+        """Get the provider type."""
+        return self._get_state(self.KEY_PROVIDER_TYPE, DEFAULT_PROVIDER)
 
     def set_api_key(self, api_key: str) -> None:
         """
         Set the API key.
 
         Args:
-            api_key: OpenRouter API key
+            api_key: API key for the provider
         """
         self._set_state(self.KEY_API_KEY, api_key)
 
@@ -164,10 +194,6 @@ class SessionManager:
         """Get the API key."""
         key = self._get_state(self.KEY_API_KEY)
         return key if key else None
-
-    # =========================================================================
-    # Model Selection
-    # =========================================================================
 
     def set_selected_model(self, model_id: str) -> None:
         """
@@ -178,9 +204,35 @@ class SessionManager:
         """
         self._set_state(self.KEY_SELECTED_MODEL, model_id)
 
-    def get_selected_model(self) -> Optional[str]:
+    def get_selected_model(self) -> str:
         """Get the selected model ID."""
-        return self._get_state(self.KEY_SELECTED_MODEL)
+        return self._get_state(self.KEY_SELECTED_MODEL, DEFAULT_MODEL)
+
+    def set_custom_model(self, model: str) -> None:
+        """
+        Set custom model name.
+
+        Args:
+            model: Custom model name
+        """
+        self._set_state(self.KEY_CUSTOM_MODEL_INPUT, model)
+
+    def get_custom_model(self) -> str:
+        """Get custom model name."""
+        return self._get_state(self.KEY_CUSTOM_MODEL_INPUT, "")
+
+    def set_custom_base_url(self, url: str) -> None:
+        """
+        Set custom base URL.
+
+        Args:
+            url: Custom API endpoint URL
+        """
+        self._set_state(self.KEY_CUSTOM_BASE_URL, url)
+
+    def get_custom_base_url(self) -> str:
+        """Get custom base URL."""
+        return self._get_state(self.KEY_CUSTOM_BASE_URL, "")
 
     # =========================================================================
     # UI State Management
@@ -202,6 +254,25 @@ class SessionManager:
     def is_loading(self) -> bool:
         """Check if app is in loading state."""
         return self._get_state(self.KEY_IS_LOADING, False)
+
+    # =========================================================================
+    # Convenience Methods
+    # =========================================================================
+
+    def get_provider_config_dict(self) -> Dict[str, Any]:
+        """
+        Get all provider-related settings as a dictionary.
+
+        Returns:
+            Dictionary with provider configuration
+        """
+        return {
+            "provider_type": self.get_provider_type(),
+            "api_key": self.get_api_key(),
+            "model": self.get_selected_model(),
+            "custom_model": self.get_custom_model(),
+            "base_url": self.get_custom_base_url(),
+        }
 
 
 # Global session manager instance

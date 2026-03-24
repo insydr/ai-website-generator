@@ -7,11 +7,12 @@ This module orchestrates all components and handles the main application flow.
 """
 
 import streamlit as st
-from typing import Optional
+from typing import Optional, Dict, Any
 
-from ai_website_generator.constants import APP_TITLE, APP_ICON, DEFAULT_MODEL_ID
+from ai_website_generator.constants import APP_TITLE, APP_ICON, DEFAULT_MODEL
 from ai_website_generator.config import get_config
-from ai_website_generator.api.openrouter import OpenRouterClient
+from ai_website_generator.providers.base import ProviderType
+from ai_website_generator.providers.registry import get_provider
 from ai_website_generator.utils.session import SessionManager, get_session_manager
 from ai_website_generator.utils.code_extractor import extract_html_code
 from ai_website_generator.ui.styles import apply_custom_css
@@ -25,6 +26,7 @@ from ai_website_generator.ui.components import (
     render_error_message,
     render_success_message,
     render_warning_message,
+    render_provider_status,
 )
 
 
@@ -55,25 +57,61 @@ class AIWebsiteGenerator:
             initial_sidebar_state="expanded",
         )
 
+    def _has_secret_key(self) -> bool:
+        """Check if API key exists in secrets for current provider."""
+        try:
+            import streamlit as st_app
+
+            if not hasattr(st_app, "secrets"):
+                return False
+
+            provider_type = self.session.get_provider_type()
+            secret_keys = {
+                "openrouter": "openrouter_api_key",
+                "openai": "openai_api_key",
+                "anthropic": "anthropic_api_key",
+                "groq": "groq_api_key",
+                "custom": "api_key",
+            }
+
+            key_name = secret_keys.get(provider_type, "api_key")
+            return key_name in st_app.secrets
+
+        except Exception:
+            return False
+
+    def _get_secret_api_key(self) -> Optional[str]:
+        """Get API key from secrets for current provider."""
+        try:
+            import streamlit as st_app
+
+            if not hasattr(st_app, "secrets"):
+                return None
+
+            provider_type = self.session.get_provider_type()
+            secret_keys = {
+                "openrouter": "openrouter_api_key",
+                "openai": "openai_api_key",
+                "anthropic": "anthropic_api_key",
+                "groq": "groq_api_key",
+                "custom": "api_key",
+            }
+
+            key_name = secret_keys.get(provider_type, "api_key")
+            return st_app.secrets.get(key_name)
+
+        except Exception:
+            return None
+
     def _get_api_key(self) -> Optional[str]:
-        """Get API key from session or config."""
+        """Get API key from session or secrets."""
         # First check session state
         session_key = self.session.get_api_key()
         if session_key:
             return session_key
 
-        # Then check config (secrets/env)
-        config = get_config()
-        return config.api_key
-
-    def _has_secret_key(self) -> bool:
-        """Check if API key exists in secrets."""
-        try:
-            import streamlit as st
-
-            return hasattr(st, "secrets") and "openrouter_api_key" in st.secrets
-        except Exception:
-            return False
+        # Then check secrets for current provider
+        return self._get_secret_api_key()
 
     def _handle_generation(self, prompt: str) -> None:
         """
@@ -85,7 +123,7 @@ class AIWebsiteGenerator:
         api_key = self._get_api_key()
 
         if not api_key:
-            render_warning_message("Please enter your OpenRouter API key in the sidebar.")
+            render_warning_message("Please enter your API key in the sidebar.")
             return
 
         if not prompt.strip():
@@ -95,17 +133,36 @@ class AIWebsiteGenerator:
         # Add user message to history
         self.session.add_message("user", prompt)
 
-        # Get configuration
-        config = get_config(api_key)
-        model_id = self.session.get_selected_model() or DEFAULT_MODEL_ID
+        # Get configuration from session
+        provider_type = self.session.get_provider_type()
+        model = self.session.get_selected_model()
+        base_url = self.session.get_custom_base_url()
 
-        # Create API client
-        client = OpenRouterClient(
-            api_key=api_key,
-            model=model_id,
-            temperature=config.temperature,
-            max_tokens=config.max_tokens,
-        )
+        # For custom model input
+        custom_model = self.session.get_custom_model()
+        if custom_model and (not model or model == DEFAULT_MODEL):
+            model = custom_model
+
+        try:
+            # Create provider configuration
+            config = get_config(
+                provider_type=provider_type,
+                api_key=api_key,
+                model=model,
+                base_url=base_url if provider_type == "custom" else None,
+            )
+
+            provider_config = config.to_provider_config()
+
+            # Create provider instance
+            provider = get_provider(provider_config)
+
+        except ValueError as e:
+            render_error_message(str(e))
+            return
+        except Exception as e:
+            render_error_message(f"Configuration error: {str(e)}")
+            return
 
         # Show loading state
         with st.spinner("🎨 Generating your website... This may take a moment."):
@@ -113,7 +170,7 @@ class AIWebsiteGenerator:
             history = self.session.get_messages_for_api()
 
             # Make API call
-            response = client.generate_website(prompt, conversation_history=history)
+            response = provider.chat(messages=history)
 
         if response.success:
             # Extract HTML code
@@ -133,7 +190,7 @@ class AIWebsiteGenerator:
                 st.code(response.content, language="text")
         else:
             if response.error:
-                render_error_message(response.error.message)
+                render_error_message(response.error)
 
     def _handle_example_click(self, prompt: str) -> None:
         """Handle example prompt click."""
@@ -142,6 +199,12 @@ class AIWebsiteGenerator:
     def _render_chat_section(self) -> None:
         """Render the chat interface section."""
         st.markdown("### 💬 Chat")
+
+        # Show provider status
+        provider_type = self.session.get_provider_type()
+        model = self.session.get_selected_model()
+        has_key = bool(self._get_api_key())
+        render_provider_status(provider_type, model, has_key)
 
         # Chat history container
         with st.container():
@@ -158,7 +221,6 @@ class AIWebsiteGenerator:
         # Input area
         default_prompt = st.session_state.get("prompt_input", "")
         if "prompt_input" in st.session_state:
-            # Clear after use
             del st.session_state["prompt_input"]
 
         user_prompt = st.text_area(
@@ -199,17 +261,25 @@ class AIWebsiteGenerator:
         col_chat, col_preview = st.columns([1, 1])
 
         # Render sidebar and get values
-        api_key, selected_model, clear_clicked = render_sidebar(
-            api_key=self.session.get_api_key(),
-            has_secret_key=self._has_secret_key(),
+        sidebar_values = render_sidebar(
+            provider_type=self.session.get_provider_type(),
+            api_key=self.session.get_api_key() or "",
             selected_model=self.session.get_selected_model(),
+            has_secret_key=self._has_secret_key(),
+            custom_base_url=self.session.get_custom_base_url(),
+            on_provider_change=self.session.set_provider_type,
             on_api_key_change=self.session.set_api_key,
             on_model_change=self.session.set_selected_model,
+            on_base_url_change=self.session.set_custom_base_url,
             on_clear_chat=self.session.clear_chat,
         )
 
+        # Handle provider/model changes from sidebar
+        if sidebar_values.get("is_custom_model"):
+            self.session.set_custom_model(sidebar_values["model"])
+
         # Handle clear chat
-        if clear_clicked:
+        if sidebar_values.get("clear_clicked"):
             st.rerun()
 
         # Render main content
