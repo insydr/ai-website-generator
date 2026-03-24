@@ -2,6 +2,9 @@
 # ====================================
 # Install with: pip install -r requirements.txt
 
+# Install the package itself (required for imports to work)
+.
+
 # Core Framework
 streamlit>=1.28.0
 
@@ -10,9 +13,5 @@ requests>=2.31.0
 
 # Optional: Performance
 urllib3>=2.0.0
-
-# -----------------------------------------------------------------------------
-# Development Dependencies (install with: pip install -r requirements.txt -r requirements-dev.txt)
-# -----------------------------------------------------------------------------
 
 # Note: Python version requirement: >=3.8

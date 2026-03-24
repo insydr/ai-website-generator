@@ -1,0 +1,25 @@
+# Streamlit Configuration
+# =======================
+
+[general]
+# The main app file
+# mainScriptPath = "src/ai_website_generator/app.py"
+
+[server]
+# Server settings
+headless = true
+port = 8501
+enableCORS = false
+enableXsrfProtection = true
+
+[theme]
+# Theme settings
+primaryColor = "#667eea"
+backgroundColor = "#ffffff"
+secondaryBackgroundColor = "#f5f7fa"
+textColor = "#333333"
+font = "sans serif"
+
+[browser]
+# Browser settings
+gatherUsageStats = false
