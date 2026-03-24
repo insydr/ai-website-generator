@@ -372,7 +372,7 @@ def render_sidebar(
             new_provider,
             selected_model,
             allow_custom=True,
-            on_model_change=on_model_change,
+            on_change=on_model_change,
         )
 
         # Custom endpoint (only for custom provider)
